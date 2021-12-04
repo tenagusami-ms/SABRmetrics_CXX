@@ -3,7 +3,7 @@ project(SABRmetrics_CXX CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_COMPILER /usr/bin/g++-11)
-set(CMAKE_CXX_FLAGS "-Wall -pedantic -pthread -std=c++17 -fmodules-ts")
+set(CMAKE_CXX_FLAGS "-Wall -pedantic -pthread -std=c++20 -fmodules-ts")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast")
 include_directories(
