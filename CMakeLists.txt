@@ -8,9 +8,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast")
 include_directories(
         /opt/boost/boost
+        include
 )
 link_directories(
         /opt/boost/boost/stage/lib
 )
-add_executable(SABRmetrics_CXX main.cpp)
+add_executable(SABRmetrics_CXX main.cpp include/functional_tools.h)
 target_link_libraries(SABRmetrics_CXX boost_system boost_filesystem boost_context)

@@ -34,7 +34,6 @@
 // 32 strikeout_walk_ratio: f64,  // 三振と四球の割合(SO/BB)
 // 33awards: String,  // 受賞
 #include <iostream>
-#include <exception>
 #include <filesystem>
 #include <vector>
 #include<string>
@@ -60,22 +59,17 @@ auto csvLine2Items(const auto &line) {
 }
 
 auto read_data_csv(const auto &file_path) {
-    auto valueTableString{std::vector<std::vector<std::string>>{}};
-    auto titleItems{std::vector<std::string>{}};
-    try {
-        auto spahn_file{std::ifstream(file_path)};
-        auto line{std::string{}};
-        std::getline(spahn_file, line);
-        titleItems = csvLine2Items(line);
-        while (std::getline(spahn_file, line)) {
-            valueTableString.emplace_back(csvLine2Items(line));
-        }
-        spahn_file.close();
-    } catch (std::exception &e) {
-        std::cerr << e.what() << std::endl;
-    }
-    return std::make_tuple(titleItems, valueTableString);
+    auto spahn_file{std::ifstream(file_path)};
+    auto line{std::string{}};
+    std::getline(spahn_file, line);
+    const auto titleItems{csvLine2Items(line)};
 
+    auto valueTableString{std::vector<std::vector<std::string>>{}};
+    while (std::getline(spahn_file, line)) {
+        valueTableString.emplace_back(csvLine2Items(line));
+    }
+    spahn_file.close();
+    return std::make_tuple(titleItems, valueTableString);
 }
 
 void process_spahn(ptree &json) {
