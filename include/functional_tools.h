@@ -1,7 +1,7 @@
 //
 // Created by ykanya on 2021/12/04.
 //
-
+#pragma once
 #ifndef SABRMETRICS_CXX_FUNCTIONAL_TOOLS_H
 #define SABRMETRICS_CXX_FUNCTIONAL_TOOLS_H
 

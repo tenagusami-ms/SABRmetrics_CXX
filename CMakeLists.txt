@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
-project(SABRmetrics_CXX CXX)
+project(SABRmetrics_CXX
+        VERSION 0.0.1
+        DESCRIPTION "SABR metrics"
+        LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_COMPILER /usr/bin/g++-11)
@@ -13,5 +16,10 @@ include_directories(
 link_directories(
         /opt/boost/boost/stage/lib
 )
-add_executable(SABRmetrics_CXX main.cpp include/functional_tools.h)
+
+add_executable(SABRmetrics_CXX
+        main.cpp
+        include/functional_tools.h
+        src/Spahn.cpp
+        src/Spahn.h src/Utility.cpp src/Utility.h)
 target_link_libraries(SABRmetrics_CXX boost_system boost_filesystem boost_context)
