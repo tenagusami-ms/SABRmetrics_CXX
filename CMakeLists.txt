@@ -21,5 +21,5 @@ add_executable(SABRmetrics_CXX
         main.cpp
         include/functional_tools.h
         src/Spahn.cpp
-        src/Spahn.h src/Utility.cpp src/Utility.h)
+        src/Spahn.h src/DataTable.cpp src/DataTable.h src/Baseball.cpp src/Baseball.h src/Teams.cpp src/Teams.h)
 target_link_libraries(SABRmetrics_CXX boost_system boost_filesystem boost_context)

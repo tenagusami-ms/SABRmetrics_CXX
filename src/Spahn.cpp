@@ -37,9 +37,11 @@
 // 32 strikeout_walk_ratio: f64,  // 三振と四球の割合(SO/BB)
 // 33awards: String,  // 受賞
 #include "Spahn.h"
+#include "Baseball.h"
 #include <iostream>
 #include <filesystem>
-#include "Utility.h"
+#include <functional>
+#include "DataTable.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/accumulators/accumulators.hpp>
@@ -48,48 +50,79 @@
 #include <boost/range/algorithm.hpp>
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
+#include <boost/range/adaptor/copied.hpp>
+#include <boost/range/algorithm/sort.hpp>
 
 using namespace boost::property_tree;
 using namespace boost::accumulators;
 using accumulator_t = accumulator_set<double, stats<tag::p_square_quantile>>;
 
 
-void dump_table(const CSVHeaderBody &spahn_csv) {
-    const auto[spahn_titles, spahn_table]{spahn_csv};
-    std::cout << boost::join(spahn_titles, "\t") << "\n";
-    boost::for_each(spahn_table, [](const auto &line) {
+void dumpTable(const TableHeaderBody &spahnCSV) {
+    const auto[spahnTitles, spahnTable]{spahnCSV};
+    std::cout << boost::join(spahnTitles, "\t") << "\n";
+    boost::for_each(spahnTable, [](const auto &line) {
         std::cout << boost::join(line, "\t") << "\n";
     });
 }
 
-void statistics_earned_run_averages(const CSVBody &spahn_table) {
-    const auto earned_run_averages{
-            spahn_table | boost::adaptors::transformed([](const auto &line) { return std::stod(line.at(7)); })};
+void statisticsEarnedRunAverages(const TableBody &spahnTable) {
+    const auto earnedRunAverages{
+            spahnTable | boost::adaptors::transformed([](const auto &line) { return std::stod(line.at(7)); })};
     accumulator_set<double, stats<tag::median> > accMedian;
     auto acc1stQuartile{accumulator_t(quantile_probability = 0.25)};
     auto acc3rdQuartile{accumulator_t(quantile_probability = 0.75)};
-    boost::for_each(earned_run_averages, [&accMedian, &acc1stQuartile, &acc3rdQuartile](const auto value) {
+    boost::for_each(earnedRunAverages, [&accMedian, &acc1stQuartile, &acc3rdQuartile](const auto value) {
         accMedian(value);
         acc1stQuartile(value);
         acc3rdQuartile(value);
     });
-    const double minimumERA{*boost::range::min_element(earned_run_averages)};
-    std::cout << "min: " << *boost::range::min_element(earned_run_averages) << "\n";
+    const double minimumERA{*boost::range::min_element(earnedRunAverages)};
+    std::cout << "min: " << *boost::range::min_element(earnedRunAverages) << "\n";
     std::cout << "1st quartile: " << p_square_quantile(acc1stQuartile) << "\n";
     std::cout << "median: " << extract::median(accMedian) << "\n";
     std::cout << "3rd quartile: " << p_square_quantile(acc3rdQuartile) << "\n";
-    std::cout << "max: " << *boost::range::max_element(earned_run_averages) << "\n";
+    std::cout << "max: " << *boost::range::max_element(earnedRunAverages) << "\n";
     std::cout << "age with minimum ERA: "
-              << *((spahn_table | boost::adaptors::filtered(
+              << *((spahnTable | boost::adaptors::filtered(
                       [minimumERA](const auto &line) { return std::stod(line.at(7)) == minimumERA; }))
                            .begin()->begin() + 1) << "\n";
 }
 
+auto annualData2FieldingIndependentPitching(const TableBody::value_type &annualData) {
+    return fieldingIndependentPitching(
+            std::stoi(annualData.at(18)), std::stoi(annualData.at(19)),
+            std::stoi(annualData.at(21)), std::stoi(annualData.at(14)));
+}
+
+auto FIPSorted(const TableBody &table, const std::function<double(TableBody::value_type)> &annualQuantity) {
+    auto tableCopied{table | boost::adaptors::copied(0, table.size())};
+    boost::range::sort(tableCopied, [&annualQuantity](const auto &year_data1, const auto &year_data2) {
+        return annualQuantity(year_data1) < annualQuantity(year_data2);
+    });
+    return tableCopied;
+}
+
+void statisticsFIP(const TableHeaderBody &spahnCSV) {
+    const auto&[spahnTitles, spahnTable]{spahnCSV};
+    const auto spahnFIPSorted{FIPSorted(spahnTable, annualData2FieldingIndependentPitching)};
+    const auto columns{std::vector<int>{0, 1, 4, 5, 7}};
+    const auto titles{columns | boost::adaptors::transformed([&spahnTitles](const int index) {
+        return spahnTitles.at(index);
+    })};
+    std::cout << boost::join(titles, "\t") << "\t" << "FIP" << "\n";
+    for (auto &annualData: spahnFIPSorted) {
+        const auto annuals{columns | boost::adaptors::transformed([&annualData](const int index) {
+            return annualData.at(index);
+        })};
+        std::cout << boost::join(annuals, "\t") << "\t" << annualData2FieldingIndependentPitching(annualData) << "\n";
+    }
+}
+
 void process_spahn(ptree &json) {
-    const auto spahn_csv{read_data_csv(std::filesystem::path(json.get_optional<std::string>("Spahn_file").get()))};
+    const auto spahnCSV{read_data_csv(std::filesystem::path(json.get_optional<std::string>("Spahn_file").get()))};
 
-    dump_table(spahn_csv);
-    statistics_earned_run_averages(std::get<1>(spahn_csv));
-
-
+    dumpTable(spahnCSV);
+    statisticsEarnedRunAverages(std::get<1>(spahnCSV));
+    statisticsFIP(spahnCSV);
 }
