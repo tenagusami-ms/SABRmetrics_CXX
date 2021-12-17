@@ -12,9 +12,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Ofast")
 include_directories(
         /opt/boost/boost
         include
+        /home/ykanya/devel/tools/baseball/DataFrame/include
 )
 link_directories(
         /opt/boost/boost/stage/lib
+        /home/ykanya/devel/tools/baseball/DataFrame/build/lib
 )
 
 add_executable(SABRmetrics_CXX
@@ -22,4 +24,4 @@ add_executable(SABRmetrics_CXX
         include/functional_tools.h
         src/Spahn.cpp
         src/Spahn.h src/DataTable.cpp src/DataTable.h src/Baseball.cpp src/Baseball.h src/Teams.cpp src/Teams.h)
-target_link_libraries(SABRmetrics_CXX boost_system boost_filesystem boost_context)
+target_link_libraries(SABRmetrics_CXX DataFrame boost_system boost_filesystem boost_context)

@@ -51,4 +51,10 @@
 // 46 teamIDretro
 
 #include "Teams.h"
+#include "Baseball.h"
 
+void processTeams() {
+    auto dataTable{readDataTable(
+            std::filesystem::path{"/home/ykanya/devel/tools/baseball/baseballdatabank-master/core"} / "Teams.csv")};
+
+}
